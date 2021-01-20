@@ -8,16 +8,16 @@ namespace JAF.integration.service
 {
     class MailManager
     {
-        private string smtpServer;
+        private string smtpServers;
         private bool smtpSSL;
         private int smptPort;
         private bool smtpDefaultCredentials;
         private string smtpUsername;
         private string smtpPassword;
 
-        public MailManager(string smtpServer, bool smtpSSL, int smptPort, bool smtpDefaultCredentials, string smtpUsername, string smtpPassword)
+        public MailManager(string smtpServers, bool smtpSSL, int smptPort, bool smtpDefaultCredentials, string smtpUsername, string smtpPassword)
         {
-            this.smtpServer = smtpServer;
+            this.smtpServers = smtpServers;
             this.smtpSSL = smtpSSL;
             this.smptPort = smptPort;
             this.smtpDefaultCredentials = smtpDefaultCredentials;
@@ -40,10 +40,11 @@ namespace JAF.integration.service
 
             mail.Attachments.Add(new Attachment(pathLog));
 
-            using (var smtp = new SmtpClient(smtpServer))
+            using (var smtp = new SmtpClient(smtpServers))
             {
                 smtp.EnableSsl = this.smtpSSL;
                 smtp.Port = this.smptPort;
+
                 smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
                 smtp.UseDefaultCredentials = this.smtpDefaultCredentials;
 

@@ -39,5 +39,10 @@ namespace JAF.integration.service
             {
             }
         }
+
+        public string GetLastFileLog()
+        {
+            return (m_exePath + "\\Logs\\" + "log" + DateTime.Now.ToString("yyyyMMdd") + ".txt");
+        }
     }
 }
