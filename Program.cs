@@ -1,9 +1,14 @@
 ﻿using JAF.integration.service.models;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace JAF.integration.service
 {
@@ -12,7 +17,9 @@ namespace JAF.integration.service
         private static readonly LogManager logManager = new LogManager();
         private static MailManager mailManager = null;
         private static string key = "VoI2SycM4QtwFheILl4NZDmXRjZWMAmX";
-        static int Main()
+
+        [STAThread]
+        public static async Task Main()
         {
             #region Setup Variaveis
             string sqlinstance = "";
@@ -28,6 +35,8 @@ namespace JAF.integration.service
             string smtpPass = "";
 
             string mailSendTo = "";
+
+            string apiServer = "";
 
             string sql = "";
             SqlCommand command = null;
@@ -87,6 +96,10 @@ namespace JAF.integration.service
             {
                 MyIni.Write("sendTo", "ynb.development24@gmail.com", "MAIL");
             }
+            if (!MyIni.KeyExists("server", "API"))
+            {
+                MyIni.Write("server", "http://localhost:3000", "API");
+            }
             #endregion
 
             #region Leitura das configurações da base de dados
@@ -100,17 +113,17 @@ namespace JAF.integration.service
             if (sqlinstance.Length <= 0)
             {
                 logManager.LogWrite("ERROR - Não foi possivel encontrar a instancia do servidor MSSQL ");
-                return -1;
+                return;
             }
             if (sqluser.Length <= 0)
             {
                 logManager.LogWrite("ERROR - Não foi possivel encontrar o username do servidor MSSQL ");
-                return -1;
+                return;
             }
             if (sqlpass.Length <= 0)
             {
                 logManager.LogWrite("ERROR - Não foi possivel encontrar a password do servidor MSSQL ");
-                return -1;
+                return;
             }
             #endregion
 
@@ -125,6 +138,11 @@ namespace JAF.integration.service
             smtpPass = AesOperation.DecryptString(key, smtpPass);
 
             mailSendTo = MyIni.Read("sendTo", "MAIL");
+            #endregion
+
+            #region Leitura das configurações do servidor da API
+            logManager.LogWrite("- Leitura das configurações de SMTP ");
+            apiServer = MyIni.Read("server", "API");
             #endregion
 
             //connect to db SQL SERVER
@@ -160,16 +178,45 @@ namespace JAF.integration.service
 
                 //Get All Projects
                 List<Projetos> listProjectos = new List<Projetos>();
-                sql = @"";
+                sql = @"SELECT [No_] as id,
+                    [Description] as descricao,[Description 2] as descricao2,
+                    [Creation Date] as datacriacao,[Last Date Modified] as dataalteracao,
+                    [Starting Date] as datainicio,[Ending Date] as datafim,[Status] as estado,
+                    [Person Responsible] as responsavelObra,
+                    [Bill-to Customer No_] as clienteNumero, [Bill-to Name] as clienteNome, 
+                    [Bill-to Address] as clienteMorada, [Bill-to Address 2] as clienteMorada2,
+                    [Bill-to City] as clienteCidade,[Bill-to County] as clientePais,
+                    [Bill-to Post Code] as clienteCodigoPostal, [Bill-to Country_Region Code] as clienteRegiaoCod,
+                    [Bill-to Contact] as clienteContato, [Complete] as completa, [Budget Base Bid] as valorOrcamentoBase,
+                    [Job Address] as obraMorada1,[Job Address 2] as obraMorada2,
+                    [Job City] as obraCidade,[Job Post Code] as obraCodigoPostal,
+                    [Job District] as obraDistrito,
+                    [Status Date] as dataEstado,[Delivery Date] as dataEntrega
+                    FROM [JAF_BC_PRD].[dbo].[JAF$Job]
+                    WHERE [Status] IN (2)";
 
                 command = new SqlCommand(sql, conn);
                 reader = command.ExecuteReader();
 
                 listProjectos = DataReaderMapToList<Projetos>(reader);
 
+                logManager.LogWrite("- Projectos lidos: " + listRecursos.Count + " ");
+
+                HttpResponseMessage response = null;
+
+                logManager.LogWrite("- A enviar dados");
+                response = await PostSendDataNavision(apiServer, listRecursos, listProjectos);
+                if (response.IsSuccessStatusCode)
+                {
+                    logManager.LogWrite("- Resposta: Dados enviados com sucesso. ");
+                }
+                else
+                {
+                    logManager.LogWrite("- Resposta: Problemas na importação de dados. ");
+                }
+
                 reader.Close();
 
-                logManager.LogWrite("- Projectos lidos: " + listRecursos.Count + " ");
             }
 
             logManager.LogWrite("---\tFim da execução do serviço Gestão de Obras");
@@ -180,9 +227,9 @@ namespace JAF.integration.service
             string mailSubject = "Serviço de Importação - Log de Importação - " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
             string mailBody = "Envio em anexo do ficheiro de logs diário.";
 
-            mail.sendLogByMail(smtpUser, mailSendTo, mailSubject, mailBody, logManager.GetLastFileLog());
+            //mail.sendLogByMail(smtpUser, mailSendTo, mailSubject, mailBody, logManager.GetLastFileLog());
 
-            return 0;
+            return;
         }
 
         #region Metodos Privados
@@ -204,6 +251,29 @@ namespace JAF.integration.service
                 list.Add(obj);
             }
             return list;
+        }
+
+        private static async Task<HttpResponseMessage> PostSendDataNavision(String urlApi, List<Recursos> recursos, List<Projetos> projetos)
+        {
+            DataNavision ydata = new DataNavision();
+            ydata.Recursos = recursos;
+            ydata.Projetos = projetos;
+
+            var sendData = new
+            {
+                ydata = new Object[] { ydata }
+            };
+
+            using (var client = new HttpClient())
+            {
+                var content = new StringContent(JsonConvert.SerializeObject(sendData), Encoding.UTF8, "application/json");
+                content.Headers.Clear();
+                content.Headers.Add("Content-Type", "application/json");
+
+                HttpResponseMessage response = (await client.PostAsync(urlApi + "/api/serviceNavision", content));
+
+                return response;
+            }
         }
 
         #endregion

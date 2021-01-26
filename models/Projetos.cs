@@ -9,29 +9,29 @@ namespace JAF.integration.service.models
         public string id { get; set; }
         public string descricao { get; set; }
         public string descricao2 { get; set; }
-        public string datacriacao { get; set; }
-        public string dataalteracao { get; set; }
-        public string datainicio { get; set; }
-        public string datafim { get; set; }
-        public string estado { get; set; }
+        public DateTime datacriacao { get; set; }
+        public DateTime dataalteracao { get; set; }
+        public DateTime datainicio { get; set; }
+        public DateTime datafim { get; set; }
+        public int estado { get; set; }
         public string responsavelObra { get; set; }
         public string clienteNumero { get; set; }
         public string clienteNome { get; set; }
-        public string clienteMorada1 { get; set; }
+        public string clienteMorada { get; set; }
         public string clienteMorada2 { get; set; }
         public string clienteCidade { get; set; }
         public string clientePais { get; set; }
         public string clienteCodigoPostal { get; set; }
         public string clienteRegiaoCod { get; set; }
         public string clienteContato { get; set; }
-        public string completa { get; set; }
-        public string valorOrcamentoBase { get; set; }
+        public int completa { get; set; }
+        public Decimal valorOrcamentoBase { get; set; }
         public string obraMorada1 { get; set; }
         public string obraMorada2 { get; set; }
         public string obraCidade { get; set; }
         public string obraCodigoPostal { get; set; }
         public string obraDistrito { get; set; }
-        public string dataEstado { get; set; }
-        public string dataEntrega { get; set; }
+        public DateTime dataEstado { get; set; }
+        public DateTime dataEntrega { get; set; }
     }
 }
