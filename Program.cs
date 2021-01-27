@@ -176,8 +176,8 @@ namespace JAF.integration.service
 
                 logManager.LogWrite("- Recursos lidos: " + listRecursos.Count +" ");
 
-                //Get All Projects
-                List<Projetos> listProjectos = new List<Projetos>();
+                //Get All Obras
+                List<Obras> listObras = new List<Obras>();
                 sql = @"SELECT [No_] as id,
                     [Description] as descricao,[Description 2] as descricao2,
                     [Creation Date] as datacriacao,[Last Date Modified] as dataalteracao,
@@ -198,14 +198,14 @@ namespace JAF.integration.service
                 command = new SqlCommand(sql, conn);
                 reader = command.ExecuteReader();
 
-                listProjectos = DataReaderMapToList<Projetos>(reader);
+                listObras = DataReaderMapToList<Obras>(reader);
 
-                logManager.LogWrite("- Projectos lidos: " + listRecursos.Count + " ");
+                logManager.LogWrite("- Obras lidas: " + listObras.Count + " ");
 
                 HttpResponseMessage response = null;
 
                 logManager.LogWrite("- A enviar dados");
-                response = await PostSendDataNavision(apiServer, listRecursos, listProjectos);
+                response = await PostSendDataNavision(apiServer, listRecursos, listObras);
                 if (response.IsSuccessStatusCode)
                 {
                     logManager.LogWrite("- Resposta: Dados enviados com sucesso. ");
@@ -253,11 +253,11 @@ namespace JAF.integration.service
             return list;
         }
 
-        private static async Task<HttpResponseMessage> PostSendDataNavision(String urlApi, List<Recursos> recursos, List<Projetos> projetos)
+        private static async Task<HttpResponseMessage> PostSendDataNavision(String urlApi, List<Recursos> recursos, List<Obras> obras)
         {
             DataNavision ydata = new DataNavision();
             ydata.Recursos = recursos;
-            ydata.Projetos = projetos;
+            ydata.Obras = obras;
 
             var sendData = new
             {

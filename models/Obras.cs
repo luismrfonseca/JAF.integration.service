@@ -4,7 +4,7 @@ using System.Text;
 
 namespace JAF.integration.service.models
 {
-    public class Projetos
+    public class Obras
     {
         public string id { get; set; }
         public string descricao { get; set; }
