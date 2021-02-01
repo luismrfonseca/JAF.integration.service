@@ -227,7 +227,7 @@ namespace JAF.integration.service
             string mailSubject = "Serviço de Importação - Log de Importação - " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
             string mailBody = "Envio em anexo do ficheiro de logs diário.";
 
-            //mail.sendLogByMail(smtpUser, mailSendTo, mailSubject, mailBody, logManager.GetLastFileLog());
+            mail.sendLogByMail(smtpUser, mailSendTo, mailSubject, mailBody, logManager.GetLastFileLog());
 
             return;
         }
