@@ -192,8 +192,7 @@ namespace JAF.integration.service
                     [Job City] as obraCidade,[Job Post Code] as obraCodigoPostal,
                     [Job District] as obraDistrito,
                     [Status Date] as dataEstado,[Delivery Date] as dataEntrega
-                    FROM [JAF_BC_PRD].[dbo].[JAF$Job]
-                    WHERE [Status] IN (2)";
+                    FROM [JAF_BC_PRD].[dbo].[JAF$Job]";
 
                 command = new SqlCommand(sql, conn);
                 reader = command.ExecuteReader();
